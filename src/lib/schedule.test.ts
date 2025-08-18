@@ -4,12 +4,16 @@ import {
   addDays,
   addMonths,
   daysBetween,
+  daysUntilWater,
   formatDateJa,
   needsRepot,
   needsWater,
   nextRepotting,
   nextWatering,
+  relativeDays,
   sortByNextWatering,
+  summarize,
+  waterProgress,
   waterStatus,
 } from './schedule';
 
@@ -23,6 +27,10 @@ function plant(over: Partial<Plant>): Plant {
     wateredAt: '2026-06-01',
     repotEveryMonths: 12,
     repottedAt: '2026-01-01',
+    light: 'bright',
+    notes: '',
+    photo: '',
+    history: [],
     ...over,
   };
 }
@@ -102,5 +110,45 @@ describe('formatDateJa', () => {
     expect(formatDateJa('2026-06-13')).toBe('6月13日(土)');
     expect(formatDateJa('2027-01-01')).toBe('1月1日(金)');
     expect(formatDateJa('未定')).toBe('未定');
+  });
+});
+
+describe('daysUntilWater / waterProgress', () => {
+  it('残り日数と周期の経過割合を返す', () => {
+    const p = plant({ wateredAt: '2026-06-06', waterEvery: 10 });
+    expect(daysUntilWater(p, '2026-06-13')).toBe(3);
+    expect(waterProgress(p, '2026-06-13')).toBeCloseTo(0.7);
+  });
+
+  it('やった直後は0、超過しても0未満にはしない', () => {
+    expect(waterProgress(plant({ wateredAt: '2026-06-13' }), '2026-06-13')).toBe(0);
+    expect(waterProgress(plant({ wateredAt: '2026-06-20' }), '2026-06-13')).toBe(0);
+  });
+});
+
+describe('summarize', () => {
+  it('水やり・もうすぐ・植え替えを数える', () => {
+    const plants = [
+      plant({ wateredAt: '2026-06-01', waterEvery: 7 }), // 次06-08 overdue
+      plant({ wateredAt: '2026-06-06', waterEvery: 7 }), // 次06-13 due
+      plant({ wateredAt: '2026-06-08', waterEvery: 7 }), // 次06-15 soon
+      plant({
+        wateredAt: '2026-06-12',
+        waterEvery: 7,
+        repottedAt: '2025-06-01',
+        repotEveryMonths: 12,
+      }),
+    ];
+    expect(summarize(plants, '2026-06-13')).toEqual({ thirsty: 2, soon: 1, repot: 1, total: 4 });
+  });
+});
+
+describe('relativeDays', () => {
+  it('残り日数を人が読む形にする', () => {
+    expect(relativeDays(0)).toBe('今日');
+    expect(relativeDays(1)).toBe('明日');
+    expect(relativeDays(5)).toBe('あと5日');
+    expect(relativeDays(-1)).toBe('昨日まで');
+    expect(relativeDays(-3)).toBe('3日すぎ');
   });
 });
