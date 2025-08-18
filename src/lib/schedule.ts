@@ -62,6 +62,56 @@ export function nextRepotting(plant: Plant): string {
   return addMonths(plant.repottedAt, plant.repotEveryMonths);
 }
 
+/** 次の水やりまでの残り日数(負=超過)。不正な日付はnull */
+export function daysUntilWater(plant: Plant, today: string): number | null {
+  return daysBetween(today, nextWatering(plant));
+}
+
+/** 次の植え替えまでの残り日数(負=超過)。不正な日付はnull */
+export function daysUntilRepot(plant: Plant, today: string): number | null {
+  return daysBetween(today, nextRepotting(plant));
+}
+
+/** 水やり周期の経過割合。0=やったばかり、1=ちょうど予定日、>1=超過。表示側でclampする */
+export function waterProgress(plant: Plant, today: string): number {
+  const elapsed = daysBetween(plant.wateredAt, today);
+  if (elapsed === null || plant.waterEvery <= 0) return 0;
+  return Math.max(0, elapsed / plant.waterEvery);
+}
+
+export interface CareCounts {
+  /** 今日までに水やりが必要な鉢 */
+  thirsty: number;
+  /** 2日以内に予定が来る鉢 */
+  soon: number;
+  /** 植え替え時期の鉢 */
+  repot: number;
+  /** 全鉢数 */
+  total: number;
+}
+
+export function summarize(plants: Plant[], today: string): CareCounts {
+  let thirsty = 0;
+  let soon = 0;
+  let repot = 0;
+  for (const p of plants) {
+    const s = waterStatus(p, today);
+    if (s === 'overdue' || s === 'due') thirsty += 1;
+    else if (s === 'soon') soon += 1;
+    if (needsRepot(p, today)) repot += 1;
+  }
+  return { thirsty, soon, repot, total: plants.length };
+}
+
+/** 残り日数を人が読む形に。例: 0→「今日」, -3→「3日すぎ」, 5→「あと5日」 */
+export function relativeDays(n: number): string {
+  if (n === 0) return '今日';
+  if (n === 1) return '明日';
+  if (n > 0) return `あと${n}日`;
+  if (n === -1) return '昨日まで';
+  return `${-n}日すぎ`;
+}
+
 export type WaterStatus = 'overdue' | 'due' | 'soon' | 'ok';
 
 export const WATER_STATUS_LABELS: Record<WaterStatus, string> = {
