@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="logo-title">
+  <title id="logo-title">mizuyari - 鉢から伸びる芽と水滴のロゴ</title>
+  <style>
+    .bg { fill: #f3f5f0; }
+    .ink { stroke: #242922; }
+    .accent { stroke: #4a7c3a; }
+    .water { stroke: #2f6690; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #161914; }
+      .ink { stroke: #e6eae2; }
+      .accent { stroke: #8cc278; }
+      .water { stroke: #7fb3d8; }
+    }
+  </style>
+  <rect class="bg" width="128" height="128" rx="28"/>
+  <g fill="none" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path class="ink" d="M40 78h48l-5 32H45z"/>
+    <path class="accent" d="M64 78V52"/>
+    <path class="accent" d="M64 52c0-16-11-25-25-25 0 16 11 25 25 25z"/>
+    <path class="accent" d="M64 52c0-16 11-25 25-25 0 16-11 25-25 25z"/>
+    <path class="water" d="M104 20c-5 6.5-7.5 10.5-7.5 14.5a7.5 7.5 0 0 0 15 0c0-4-2.5-8-7.5-14.5z"/>
+  </g>
+</svg>
