@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 470" role="img" aria-labelledby="arch-title">
+  <title id="arch-title">mizuyariの構成図。UI層がロジック層の2モジュール(plant・schedule)を呼び、鉢の台帳はlocalStorageに保存される。</title>
+  <style>
+    .box { fill: #fcfdfb; stroke: #dde2d6; stroke-width: 1.5; }
+    .layer { fill: #f3f5f0; stroke: #dde2d6; stroke-width: 1.5; }
+    .chip { fill: #e5efdf; stroke: none; }
+    .name { fill: #242922; font: 600 15px system-ui, sans-serif; }
+    .label { fill: #68705f; font: 13px system-ui, sans-serif; }
+    .chip-text { fill: #4a7c3a; font: 600 13px system-ui, sans-serif; }
+    .layer-name { fill: #4a7c3a; font: 700 13px system-ui, sans-serif; letter-spacing: 0.08em; }
+    .edge { stroke: #68705f; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+    .edge-label { fill: #68705f; font: 12px system-ui, sans-serif; }
+    #arrow path { fill: #68705f; }
+    @media (prefers-color-scheme: dark) {
+      .box { fill: #1f231d; stroke: #333a2f; }
+      .layer { fill: #161914; stroke: #333a2f; }
+      .chip { fill: #28371f; }
+      .name { fill: #e6eae2; }
+      .label { fill: #9aa291; }
+      .chip-text { fill: #8cc278; }
+      .layer-name { fill: #8cc278; }
+      .edge { stroke: #9aa291; }
+      .edge-label { fill: #9aa291; }
+      #arrow path { fill: #9aa291; }
+    }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+  </defs>
+
+  <rect class="layer" x="40" y="32" width="800" height="128" rx="14"/>
+  <text class="layer-name" x="64" y="60">UI層(app.ts / main.ts)</text>
+  <text class="label" x="64" y="82">鉢のカードを次の水やりが近い順に描き、世話のボタンで日付を today に更新する</text>
+  <rect class="chip" x="64" y="100" width="150" height="32" rx="16"/>
+  <text class="chip-text" x="139" y="121" text-anchor="middle">今日やる世話の数</text>
+  <rect class="chip" x="226" y="100" width="130" height="32" rx="16"/>
+  <text class="chip-text" x="291" y="121" text-anchor="middle">鉢のカード</text>
+  <rect class="chip" x="368" y="100" width="130" height="32" rx="16"/>
+  <text class="chip-text" x="433" y="121" text-anchor="middle">追加フォーム</text>
+
+  <path class="edge" d="M245 160 V224"/>
+  <path class="edge" d="M635 160 V224"/>
+
+  <rect class="box" x="155" y="228" width="180" height="96" rx="14"/>
+  <text class="name" x="245" y="262" text-anchor="middle">plant.ts</text>
+  <text class="label" x="245" y="286" text-anchor="middle">鉢の型・検証・</text>
+  <text class="label" x="245" y="306" text-anchor="middle">永続化</text>
+
+  <rect class="box" x="545" y="228" width="180" height="96" rx="14"/>
+  <text class="name" x="635" y="262" text-anchor="middle">schedule.ts</text>
+  <text class="label" x="635" y="286" text-anchor="middle">次の予定日・状態判定・</text>
+  <text class="label" x="635" y="306" text-anchor="middle">日付計算(月末丸め)</text>
+
+  <path class="edge" d="M245 324 V388"/>
+  <text class="edge-label" x="257" y="362">保存・復元</text>
+
+  <rect class="box" x="155" y="392" width="180" height="48" rx="14"/>
+  <text class="name" x="245" y="421" text-anchor="middle">localStorage</text>
+</svg>
