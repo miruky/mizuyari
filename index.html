@@ -5,12 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="観葉植物の水やり・植え替え管理。鉢ごとの間隔から次の予定を出し、今日やるべき世話が分かる"
+      content="観葉植物の水やり・植え替え管理。鉢ごとの間隔から次の予定を出し、今日やるべき世話が分かる手帳"
     />
-    <meta name="theme-color" content="#f3f5f0" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#161914" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f4f1e9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#15170f" media="(prefers-color-scheme: dark)" />
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <title>mizuyari | 水やりの手帳</title>
+    <script>
+      // 描画前にテーマを解決し、ちらつき(FOUC)を防ぐ
+      (function () {
+        try {
+          var pref = localStorage.getItem('mizuyari.theme');
+          if (pref !== 'light' && pref !== 'dark' && pref !== 'system') pref = 'system';
+          var dark =
+            pref === 'dark' ||
+            (pref === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        } catch (e) {
+          /* localStorageが使えない環境ではOS設定のままにする */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>
