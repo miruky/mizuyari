@@ -14,6 +14,7 @@ import {
   type PlantStore,
 } from './lib/plant';
 import {
+  countCareSince,
   daysUntilRepot,
   daysUntilWater,
   formatDateJa,
@@ -21,6 +22,7 @@ import {
   nextRepotting,
   nextWatering,
   relativeDays,
+  startOfMonth,
   summarize,
   waterProgress,
   waterStatus,
@@ -35,7 +37,7 @@ import {
   type FilterKey,
   type SortKey,
 } from './lib/filter';
-import { canUndo, recordCare, undoLastCare } from './lib/history';
+import { canUndo, recordCare, undoLastCare, waterDuePlants } from './lib/history';
 import { plantPhoto } from './lib/photo';
 import { icons } from './icons';
 import { THEME_LABELS, type ThemePref } from './lib/theme';
@@ -104,6 +106,7 @@ export function createApp(deps: AppDeps): void {
   let adding = false;
   let menuOpen = false;
   let notice = '';
+  let query = '';
 
   function persist(): void {
     store.save(plants);
@@ -154,6 +157,7 @@ export function createApp(deps: AppDeps): void {
 
   function lead(): string {
     const c = summarize(plants, today);
+    const wateredThisMonth = countCareSince(plants, 'water', startOfMonth(today));
     let headline: string;
     if (c.total === 0) {
       headline = '鉢を登録すると、<br />今日の世話がここにまとまります。';
@@ -162,12 +166,20 @@ export function createApp(deps: AppDeps): void {
     } else {
       headline = '今日あげる鉢は<br />ありません。';
     }
+    const cta =
+      c.thirsty > 0
+        ? `<div class="lead-cta">
+            <button type="button" class="solid-button" id="water-all">${icons.drop}<span>${c.thirsty}鉢にまとめて水やり</span></button>
+            <span class="lead-cta-hint">記録後も鉢ごとに取り消せます</span>
+          </div>`
+        : '';
     const sub =
       c.total === 0
         ? ''
         : `<p class="lead-sub">
             <span>もうすぐ <b class="num">${c.soon}</b></span>
             <span>植え替え <b class="num">${c.repot}</b></span>
+            <span>今月の水やり <b class="num">${wateredThisMonth}</b></span>
             <span>登録 <b class="num">${c.total}</b> 鉢</span>
           </p>`;
     return `<section class="lead">
@@ -175,6 +187,7 @@ export function createApp(deps: AppDeps): void {
         <div class="lead-copy">
           <p class="lead-date">${esc(formatDateJa(today))}</p>
           <h1 class="lead-headline">${headline}</h1>
+          ${cta}
           ${sub}
         </div>
         <figure class="lead-figure">
@@ -204,9 +217,21 @@ export function createApp(deps: AppDeps): void {
           `<option value="${k}"${k === sort ? ' selected' : ''}>${esc(SORT_LABELS[k])}</option>`,
       )
       .join('');
+    const clearBtn =
+      query !== ''
+        ? `<button type="button" class="search-clear" id="search-clear" aria-label="検索を消す">${icons.close}</button>`
+        : '';
     return `<div class="toolbar">
       <div class="wrap toolbar-inner">
-        <div class="segmented" role="group" aria-label="絞り込み">${seg}</div>
+        <div class="toolbar-lead">
+          <div class="search${query !== '' ? ' is-active' : ''}">
+            ${icons.search}
+            <input type="search" id="search" placeholder="名前・場所・メモで探す"
+              value="${esc(query)}" aria-label="鉢を探す" autocomplete="off" enterkeyhint="search" />
+            ${clearBtn}
+          </div>
+          <div class="segmented" role="group" aria-label="絞り込み">${seg}</div>
+        </div>
         <div class="toolbar-right">
           <label class="field-inline">${icons.sliders}<span class="sr-only">並べ替え</span>
             <select id="sort-select" aria-label="並べ替え">${sortOpts}</select></label>
@@ -331,11 +356,18 @@ export function createApp(deps: AppDeps): void {
         </div>
       </div></main>`;
     }
-    const list = arrange(plants, today, sort, filter);
-    const inner =
-      list.length === 0
-        ? `<div class="empty"><p class="empty-lead">${esc(FILTER_LABELS[filter])}の鉢はありません。</p></div>`
-        : `<ol class="entries">${list.map((p, i) => entry(p, i)).join('')}</ol>`;
+    const list = arrange(plants, today, sort, filter, query);
+    let inner: string;
+    if (list.length > 0) {
+      inner = `<ol class="entries">${list.map((p, i) => entry(p, i)).join('')}</ol>`;
+    } else if (query.trim() !== '') {
+      inner = `<div class="empty">
+        <p class="empty-lead">「${esc(query.trim())}」に合う鉢はありません。</p>
+        <p class="muted">名前・品種・置き場所・メモから探せます。</p>
+      </div>`;
+    } else {
+      inner = `<div class="empty"><p class="empty-lead">${esc(FILTER_LABELS[filter])}の鉢はありません。</p></div>`;
+    }
     return `<main class="register"><div class="wrap">${inner}</div></main>`;
   }
 
@@ -368,7 +400,18 @@ export function createApp(deps: AppDeps): void {
   }
 
   function render(animate: boolean): void {
-    const activeId = document.activeElement instanceof HTMLElement ? document.activeElement.id : '';
+    // 全体を描き直すため、再描画後にフォーカスとテキストのカーソル位置を復元する。
+    // これがないと検索などの逐次入力で毎打鍵ごとにカーソルが末尾へ飛ぶ。
+    const active = document.activeElement;
+    const activeId = active instanceof HTMLElement ? active.id : '';
+    let caret: [number | null, number | null] | null = null;
+    if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) {
+      try {
+        caret = [active.selectionStart, active.selectionEnd];
+      } catch {
+        caret = null; // number/date など選択非対応のinputは触らない
+      }
+    }
     root.innerHTML = `
       ${masthead()}
       ${lead()}
@@ -380,7 +423,17 @@ export function createApp(deps: AppDeps): void {
       ${addPanel()}
       ${noticeBar()}`;
     bind();
-    if (activeId !== '') document.getElementById(activeId)?.focus();
+    if (activeId !== '') {
+      const next = document.getElementById(activeId);
+      next?.focus();
+      if (caret && (next instanceof HTMLInputElement || next instanceof HTMLTextAreaElement)) {
+        try {
+          next.setSelectionRange(caret[0], caret[1]);
+        } catch {
+          /* 選択非対応のinputは無視 */
+        }
+      }
+    }
     deps.onRender?.(animate);
   }
 
@@ -421,15 +474,23 @@ export function createApp(deps: AppDeps): void {
     }
   }
 
-  function flash(message: string): void {
+  function flash(message: string, animate = false): void {
     notice = message;
-    render(false);
+    render(animate);
     window.setTimeout(() => {
       if (notice === message) {
         notice = '';
         render(false);
       }
     }, 2600);
+  }
+
+  function waterAll(): void {
+    const result = waterDuePlants(plants, today);
+    if (result.count === 0) return;
+    plants = result.plants;
+    persist();
+    flash(`${result.count}鉢に水やりを記録しました。`, true);
   }
 
   function exportNow(): void {
@@ -486,6 +547,18 @@ export function createApp(deps: AppDeps): void {
         render(true);
       }
     });
+
+    root.querySelector<HTMLInputElement>('#search')?.addEventListener('input', (e) => {
+      query = (e.target as HTMLInputElement).value;
+      render(false);
+    });
+    root.querySelector('#search-clear')?.addEventListener('click', () => {
+      query = '';
+      render(false);
+      root.querySelector<HTMLInputElement>('#search')?.focus();
+    });
+
+    root.querySelector('#water-all')?.addEventListener('click', waterAll);
 
     const openAdd = (): void => {
       adding = true;
@@ -599,10 +672,15 @@ export function createApp(deps: AppDeps): void {
   // 画面全体のキー操作(1度だけ登録)
   document.addEventListener('keydown', (e) => {
     if (e.defaultPrevented) return;
-    const tag = (e.target as HTMLElement | null)?.tagName;
+    const target = e.target as HTMLElement | null;
+    const tag = target?.tagName;
     const typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
     if (e.key === 'Escape') {
-      if (adding) {
+      if (target?.id === 'search' && query !== '') {
+        query = '';
+        render(false);
+        root.querySelector<HTMLInputElement>('#search')?.focus();
+      } else if (adding) {
         closeAdd();
       } else if (menuOpen) {
         menuOpen = false;
@@ -620,6 +698,12 @@ export function createApp(deps: AppDeps): void {
       menuOpen = false;
       render(false);
       root.querySelector<HTMLInputElement>('#add-name')?.focus();
+    } else if (e.key === '/' && plants.length > 0 && !adding) {
+      e.preventDefault();
+      root.querySelector<HTMLInputElement>('#search')?.focus();
+    } else if (e.key === 'w' && !adding) {
+      e.preventDefault();
+      waterAll();
     }
   });
 
