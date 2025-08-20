@@ -34,6 +34,23 @@ export function addDays(iso: string, days: number): string {
   return fromUTC(utc + days * DAY_MS);
 }
 
+/** その月の1日(YYYY-MM-01)。不正な形はそのまま返す */
+export function startOfMonth(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-\d{2}$/.exec(iso);
+  return m ? `${m[1]}-${m[2]}-01` : iso;
+}
+
+/** sinceISO(その日を含む)以降に記録された世話の件数。日付はYYYY-MM-DDの辞書順で比較する */
+export function countCareSince(plants: Plant[], kind: 'water' | 'repot', sinceISO: string): number {
+  let n = 0;
+  for (const p of plants) {
+    for (const e of p.history) {
+      if (e.kind === kind && e.date >= sinceISO) n += 1;
+    }
+  }
+  return n;
+}
+
 /** 月単位の加算。月末を超える日付は月末に丸める(1/31の3か月後は4/30) */
 export function addMonths(iso: string, months: number): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
