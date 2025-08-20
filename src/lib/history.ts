@@ -2,6 +2,7 @@
 // 同じ操作を history に積む。誤タップは undoLastCare で1つ前の日付へ戻せる。
 
 import { MAX_HISTORY, type CareEvent, type CareKind, type Plant } from './plant';
+import { needsWater } from './schedule';
 
 const FIELD: Record<CareKind, 'wateredAt' | 'repottedAt'> = {
   water: 'wateredAt',
@@ -12,6 +13,22 @@ const FIELD: Record<CareKind, 'wateredAt' | 'repottedAt'> = {
 export function recordCare(plant: Plant, kind: CareKind, date: string): Plant {
   const history = [{ kind, date }, ...plant.history].slice(0, MAX_HISTORY);
   return { ...plant, [FIELD[kind]]: date, history };
+}
+
+/** 水やりが必要な鉢へまとめて記録する。対象の数と更新後の配列を返す。元は変更しない */
+export function waterDuePlants(
+  plants: Plant[],
+  today: string,
+): { plants: Plant[]; count: number } {
+  let count = 0;
+  const next = plants.map((p) => {
+    if (needsWater(p, today)) {
+      count += 1;
+      return recordCare(p, 'water', today);
+    }
+    return p;
+  });
+  return { plants: next, count };
 }
 
 /** 直近の同種の記録を取り消す。日付は一つ前の記録へ戻す。戻す先が無ければ日付は据え置く */
