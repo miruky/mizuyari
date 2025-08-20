@@ -1,61 +1,92 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 470" role="img" aria-labelledby="arch-title">
-  <title id="arch-title">mizuyariの構成図。UI層がロジック層の2モジュール(plant・schedule)を呼び、鉢の台帳はlocalStorageに保存される。</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 480" role="img" aria-labelledby="arch-title">
+  <title id="arch-title">mizuyariの構成図。UI層が6つのロジックモジュールを呼び、演出はGSAPに委ね、鉢とテーマと表示設定はlocalStorageに保存される。</title>
   <style>
-    .box { fill: #fcfdfb; stroke: #dde2d6; stroke-width: 1.5; }
-    .layer { fill: #f3f5f0; stroke: #dde2d6; stroke-width: 1.5; }
-    .chip { fill: #e5efdf; stroke: none; }
-    .name { fill: #242922; font: 600 15px system-ui, sans-serif; }
-    .label { fill: #68705f; font: 13px system-ui, sans-serif; }
-    .chip-text { fill: #4a7c3a; font: 600 13px system-ui, sans-serif; }
-    .layer-name { fill: #4a7c3a; font: 700 13px system-ui, sans-serif; letter-spacing: 0.08em; }
-    .edge { stroke: #68705f; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
-    .edge-label { fill: #68705f; font: 12px system-ui, sans-serif; }
-    #arrow path { fill: #68705f; }
+    .layer { fill: #faf8f2; stroke: #d8d3c2; stroke-width: 1.5; }
+    .mod { fill: #f4f1e9; stroke: #d8d3c2; stroke-width: 1.5; }
+    .store { fill: #e7ecdf; stroke: #cdd9c2; stroke-width: 1.5; }
+    .kick { fill: #4a6b3f; font: 700 12px system-ui, sans-serif; letter-spacing: 0.12em; }
+    .name { fill: #2a2b24; font: 600 15px system-ui, sans-serif; }
+    .desc { fill: #6f7163; font: 12.5px system-ui, sans-serif; }
+    .edge { stroke: #9a9c87; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+    .rail { stroke: #c9c4b2; stroke-width: 1.5; fill: none; }
+    #arrow path { fill: #9a9c87; }
     @media (prefers-color-scheme: dark) {
-      .box { fill: #1f231d; stroke: #333a2f; }
-      .layer { fill: #161914; stroke: #333a2f; }
-      .chip { fill: #28371f; }
-      .name { fill: #e6eae2; }
-      .label { fill: #9aa291; }
-      .chip-text { fill: #8cc278; }
-      .layer-name { fill: #8cc278; }
-      .edge { stroke: #9aa291; }
-      .edge-label { fill: #9aa291; }
-      #arrow path { fill: #9aa291; }
+      .layer { fill: #1d2016; stroke: #2f3325; }
+      .mod { fill: #181b11; stroke: #2f3325; }
+      .store { fill: #283021; stroke: #3a4530; }
+      .kick { fill: #96bd86; }
+      .name { fill: #e9e7d8; }
+      .desc { fill: #9a9c87; }
+      .edge { stroke: #6f7360; }
+      .rail { stroke: #3a4030; }
+      #arrow path { fill: #6f7360; }
     }
   </style>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 z"/>
+      <path d="M0 0 L10 5 L0 10 z" />
     </marker>
   </defs>
 
-  <rect class="layer" x="40" y="32" width="800" height="128" rx="14"/>
-  <text class="layer-name" x="64" y="60">UI層(app.ts / main.ts)</text>
-  <text class="label" x="64" y="82">鉢のカードを次の水やりが近い順に描き、世話のボタンで日付を today に更新する</text>
-  <rect class="chip" x="64" y="100" width="150" height="32" rx="16"/>
-  <text class="chip-text" x="139" y="121" text-anchor="middle">今日やる世話の数</text>
-  <rect class="chip" x="226" y="100" width="130" height="32" rx="16"/>
-  <text class="chip-text" x="291" y="121" text-anchor="middle">鉢のカード</text>
-  <rect class="chip" x="368" y="100" width="130" height="32" rx="16"/>
-  <text class="chip-text" x="433" y="121" text-anchor="middle">追加フォーム</text>
+  <!-- UI層 -->
+  <rect class="layer" x="37" y="32" width="600" height="104" rx="12" />
+  <text class="kick" x="61" y="62">UI 層</text>
+  <text class="name" x="61" y="88">app.ts / main.ts</text>
+  <text class="desc" x="61" y="110">鉢の一覧を状態変化のたびに描き直し、世話・追加・編集・絞り込みを受ける</text>
+  <text class="desc" x="61" y="127">テーマと表示設定の保持、演出フックの呼び出しを束ねる</text>
 
-  <path class="edge" d="M245 160 V224"/>
-  <path class="edge" d="M635 160 V224"/>
+  <!-- 演出 -->
+  <path class="edge" d="M637 84 H653" />
+  <rect class="layer" x="655" y="32" width="208" height="104" rx="12" />
+  <text class="kick" x="679" y="62">演出</text>
+  <text class="name" x="679" y="88">motion.ts</text>
+  <text class="desc" x="679" y="110">GSAP / ScrollTrigger</text>
+  <text class="desc" x="679" y="127">reduced-motionで停止</text>
 
-  <rect class="box" x="155" y="228" width="180" height="96" rx="14"/>
-  <text class="name" x="245" y="262" text-anchor="middle">plant.ts</text>
-  <text class="label" x="245" y="286" text-anchor="middle">鉢の型・検証・</text>
-  <text class="label" x="245" y="306" text-anchor="middle">永続化</text>
+  <!-- 縦の幹と横レール -->
+  <path class="edge" d="M337 136 V162" />
+  <path class="rail" d="M100 172 H800" />
+  <path class="rail" d="M337 162 V172" />
+  <path class="rail" d="M100 172 V190" />
+  <path class="rail" d="M240 172 V190" />
+  <path class="rail" d="M380 172 V190" />
+  <path class="rail" d="M520 172 V190" />
+  <path class="rail" d="M660 172 V190" />
+  <path class="rail" d="M800 172 V190" />
 
-  <rect class="box" x="545" y="228" width="180" height="96" rx="14"/>
-  <text class="name" x="635" y="262" text-anchor="middle">schedule.ts</text>
-  <text class="label" x="635" y="286" text-anchor="middle">次の予定日・状態判定・</text>
-  <text class="label" x="635" y="306" text-anchor="middle">日付計算(月末丸め)</text>
+  <!-- ロジック層(6モジュール) -->
+  <rect class="mod" x="37" y="192" width="126" height="96" rx="10" />
+  <text class="name" x="100" y="226" text-anchor="middle">plant</text>
+  <text class="desc" x="100" y="248" text-anchor="middle">型・検証</text>
+  <text class="desc" x="100" y="266" text-anchor="middle">永続化・入出力</text>
 
-  <path class="edge" d="M245 324 V388"/>
-  <text class="edge-label" x="257" y="362">保存・復元</text>
+  <rect class="mod" x="177" y="192" width="126" height="96" rx="10" />
+  <text class="name" x="240" y="226" text-anchor="middle">schedule</text>
+  <text class="desc" x="240" y="248" text-anchor="middle">予定日・状態</text>
+  <text class="desc" x="240" y="266" text-anchor="middle">日付計算</text>
 
-  <rect class="box" x="155" y="392" width="180" height="48" rx="14"/>
-  <text class="name" x="245" y="421" text-anchor="middle">localStorage</text>
+  <rect class="mod" x="317" y="192" width="126" height="96" rx="10" />
+  <text class="name" x="380" y="226" text-anchor="middle">history</text>
+  <text class="desc" x="380" y="248" text-anchor="middle">世話の記録</text>
+  <text class="desc" x="380" y="266" text-anchor="middle">取り消し</text>
+
+  <rect class="mod" x="457" y="192" width="126" height="96" rx="10" />
+  <text class="name" x="520" y="226" text-anchor="middle">filter</text>
+  <text class="desc" x="520" y="248" text-anchor="middle">絞り込み</text>
+  <text class="desc" x="520" y="266" text-anchor="middle">並べ替え</text>
+
+  <rect class="mod" x="597" y="192" width="126" height="96" rx="10" />
+  <text class="name" x="660" y="226" text-anchor="middle">theme</text>
+  <text class="desc" x="660" y="248" text-anchor="middle">テーマ解決</text>
+
+  <rect class="mod" x="737" y="192" width="126" height="96" rx="10" />
+  <text class="name" x="800" y="226" text-anchor="middle">photo</text>
+  <text class="desc" x="800" y="248" text-anchor="middle">鉢の写真</text>
+
+  <!-- 保存 -->
+  <path class="edge" d="M100 288 V350" />
+  <rect class="store" x="37" y="360" width="500" height="80" rx="12" />
+  <text class="kick" x="61" y="390">保存</text>
+  <text class="name" x="61" y="414">localStorage</text>
+  <text class="desc" x="61" y="432">鉢の台帳・テーマ・表示設定(外部に送信しない)</text>
 </svg>
