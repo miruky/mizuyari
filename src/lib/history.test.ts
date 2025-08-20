@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Plant } from './plant';
-import { canUndo, recentCare, recordCare, undoLastCare } from './history';
+import { canUndo, recentCare, recordCare, undoLastCare, waterDuePlants } from './history';
 
 function plant(over: Partial<Plant>): Plant {
   return {
@@ -52,6 +52,33 @@ describe('undoLastCare', () => {
   it('記録が無ければ何もしない', () => {
     const p = plant({ history: [] });
     expect(undoLastCare(p, 'repot')).toBe(p);
+  });
+});
+
+describe('waterDuePlants', () => {
+  const TODAY = '2026-06-13';
+
+  it('水やりが必要な鉢だけまとめて記録する', () => {
+    const due = plant({ id: 'a', wateredAt: '2026-06-01', waterEvery: 7 });
+    const ok = plant({ id: 'b', wateredAt: '2026-06-12', waterEvery: 7 });
+    const { plants, count } = waterDuePlants([due, ok], TODAY);
+    expect(count).toBe(1);
+    expect(plants[0]?.wateredAt).toBe('2026-06-13');
+    expect(plants[1]?.wateredAt).toBe('2026-06-12');
+    expect(plants[0]?.history[0]).toEqual({ kind: 'water', date: '2026-06-13' });
+  });
+
+  it('対象が無ければ件数0で日付も変えない', () => {
+    const ok = plant({ wateredAt: '2026-06-12', waterEvery: 7 });
+    const { plants, count } = waterDuePlants([ok], TODAY);
+    expect(count).toBe(0);
+    expect(plants[0]?.wateredAt).toBe('2026-06-12');
+  });
+
+  it('元の配列を書き換えない', () => {
+    const due = plant({ wateredAt: '2026-06-01', waterEvery: 7 });
+    waterDuePlants([due], TODAY);
+    expect(due.wateredAt).toBe('2026-06-01');
   });
 });
 

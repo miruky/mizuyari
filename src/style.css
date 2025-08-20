@@ -236,6 +236,24 @@ svg {
   padding-inline: 0.06em;
 }
 
+.lead-cta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-top: 26px;
+}
+
+.lead-cta .solid-button {
+  padding: 10px 18px;
+  font-size: 0.92rem;
+}
+
+.lead-cta-hint {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
 .lead-sub {
   display: flex;
   flex-wrap: wrap;
@@ -285,12 +303,87 @@ svg {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 12px 16px;
   padding-block: 12px;
 }
 
 .toolbar-empty {
   justify-content: flex-end;
+}
+
+.toolbar-lead {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.search {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: clamp(11rem, 22vw, 18rem);
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.search svg {
+  width: 16px;
+  height: 16px;
+}
+
+.search.is-active,
+.search:focus-within {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+.search:focus-within {
+  box-shadow: 0 0 0 3px var(--accent-wash);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: 0.88rem;
+  color: var(--ink);
+}
+
+.search input:focus {
+  outline: none;
+}
+
+/* ブラウザ標準の検索クリアは独自ボタンに任せて隠す */
+.search input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.search-clear {
+  display: inline-flex;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  padding: 0;
+}
+
+.search-clear svg {
+  width: 15px;
+  height: 15px;
+}
+
+.search-clear:hover {
+  color: var(--ink);
 }
 
 .segmented {
@@ -992,6 +1085,22 @@ svg {
 @media (max-width: 600px) {
   body {
     font-size: 15px;
+  }
+
+  .toolbar-lead {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .search {
+    flex: 1 1 100%;
+    width: auto;
+  }
+
+  .toolbar-right {
+    flex: 1 1 100%;
+    justify-content: flex-end;
   }
 
   .entry {
