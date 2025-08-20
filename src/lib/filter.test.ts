@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Plant } from './plant';
-import { arrange, isFilterKey, isSortKey } from './filter';
+import { arrange, isFilterKey, isSortKey, matchesQuery } from './filter';
 
 function plant(over: Partial<Plant>): Plant {
   return {
@@ -70,6 +70,40 @@ describe('arrange', () => {
     const copy = [...PLANTS];
     arrange(PLANTS, TODAY, 'name', 'all');
     expect(PLANTS).toEqual(copy);
+  });
+});
+
+describe('matchesQuery', () => {
+  it('空語句はすべて通す', () => {
+    expect(matchesQuery(plant({ name: 'パキラ' }), '')).toBe(true);
+    expect(matchesQuery(plant({ name: 'パキラ' }), '   ')).toBe(true);
+  });
+
+  it('名前・品種・置き場所・メモのいずれかに部分一致', () => {
+    const p = plant({ name: 'パキラ', species: 'グラブラ', spot: '窓際', notes: '乾かし気味' });
+    expect(matchesQuery(p, 'グラ')).toBe(true);
+    expect(matchesQuery(p, '窓')).toBe(true);
+    expect(matchesQuery(p, '乾かし')).toBe(true);
+    expect(matchesQuery(p, 'モンステラ')).toBe(false);
+  });
+
+  it('英字は大小を無視する', () => {
+    expect(matchesQuery(plant({ species: 'Pothos' }), 'pothos')).toBe(true);
+    expect(matchesQuery(plant({ species: 'Pothos' }), 'POTH')).toBe(true);
+  });
+});
+
+describe('arrange + query', () => {
+  it('語句で絞ってから並べ替える', () => {
+    const list = [
+      plant({ name: 'パキラ', spot: 'まどぎわ' }),
+      plant({ name: 'ポトス', spot: 'げんかん' }),
+      plant({ name: 'サンスベリア', spot: 'まどぎわ' }),
+    ];
+    expect(arrange(list, TODAY, 'name', 'all', 'まどぎわ').map((p) => p.name)).toEqual([
+      'サンスベリア',
+      'パキラ',
+    ]);
   });
 });
 
