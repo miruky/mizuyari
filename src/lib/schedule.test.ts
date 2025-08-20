@@ -3,6 +3,7 @@ import type { Plant } from './plant';
 import {
   addDays,
   addMonths,
+  countCareSince,
   daysBetween,
   daysUntilWater,
   formatDateJa,
@@ -12,6 +13,7 @@ import {
   nextWatering,
   relativeDays,
   sortByNextWatering,
+  startOfMonth,
   summarize,
   waterProgress,
   waterStatus,
@@ -140,6 +142,35 @@ describe('summarize', () => {
       }),
     ];
     expect(summarize(plants, '2026-06-13')).toEqual({ thirsty: 2, soon: 1, repot: 1, total: 4 });
+  });
+});
+
+describe('startOfMonth / countCareSince', () => {
+  it('startOfMonthはその月の1日を返す', () => {
+    expect(startOfMonth('2026-06-13')).toBe('2026-06-01');
+    expect(startOfMonth('2026-01-31')).toBe('2026-01-01');
+    expect(startOfMonth('不明')).toBe('不明');
+  });
+
+  it('指定日以降の世話だけを種類ごとに数える', () => {
+    const plants = [
+      plant({
+        history: [
+          { kind: 'water', date: '2026-06-12' },
+          { kind: 'water', date: '2026-05-30' },
+          { kind: 'repot', date: '2026-06-05' },
+        ],
+      }),
+      plant({
+        history: [
+          { kind: 'water', date: '2026-06-01' },
+          { kind: 'water', date: '2026-06-10' },
+        ],
+      }),
+    ];
+    expect(countCareSince(plants, 'water', '2026-06-01')).toBe(3);
+    expect(countCareSince(plants, 'repot', '2026-06-01')).toBe(1);
+    expect(countCareSince(plants, 'water', '2026-07-01')).toBe(0);
   });
 });
 
