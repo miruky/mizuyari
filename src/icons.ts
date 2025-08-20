@@ -43,4 +43,5 @@ export const icons = {
   ),
   close: svg('<path d="M6 6 18 18"/><path d="M18 6 6 18"/>'),
   chevron: svg('<path d="m8 10 4 4 4-4"/>'),
+  search: svg('<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>'),
 } as const;
